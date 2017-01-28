@@ -92,14 +92,17 @@ public class WarcRecordReader extends RecordReader<LongWritable, WarcRecord> {
 		this.pos = start;
 	}
 
-	public boolean nextKeyValue() throws IOException {
+	public boolean nextKeyValue() {
 		if (key == null) {
 			key = new LongWritable();
 		}
-		pos = filePosition.getPos();
-		key.set(pos);
-
-		value = warcReader.getNextRecord();
+		try {
+			pos = filePosition.getPos();
+			key.set(pos);
+			value = warcReader.getNextRecord();
+		} catch (IOException e) {
+			value = null;
+		}
 		if (value == null) {
 			return false;
 		}

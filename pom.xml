@@ -4,28 +4,17 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>SURFsara</groupId>
+  <groupId>nl.surfsara</groupId>
   <artifactId>warcutils</artifactId>
   <packaging>jar</packaging>
-  <version>1.2</version>
+  <version>1.4</version>
 
   <properties>
-    <java.version>6</java.version>
-    <hadoop.version>2.4.0.2.1.1.0-385</hadoop.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <java.version>7</java.version>
+    <hadoop.version>2.6.0</hadoop.version>
+    <jwat.version>1.0.2</jwat.version>
   </properties>
-
-  <distributionManagement>
-    <repository>
-      <id>SURFsara.releases</id>
-      <name>SURFsara's releases</name>
-      <url>dav:https://beehub.nl/surfsara-repo/releases</url>
-    </repository>
-    <snapshotRepository>
-      <id>SURFsara.snapshots</id>
-      <name>SURFsara's snapshots</name>
-      <url>dav:https://beehub.nl/surfsara-repo/snapshots</url>
-    </snapshotRepository>
-  </distributionManagement>
 
   <repositories>
     <repository>
@@ -38,20 +27,14 @@
   <dependencies>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-common</artifactId>
-      <version>${hadoop.version}</version>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-mapreduce-client-common</artifactId>
+      <artifactId>hadoop-client</artifactId>
       <version>${hadoop.version}</version>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.apache.pig</groupId>
       <artifactId>pig</artifactId>
-      <version>0.12.1.2.1.1.0-385</version>
+      <version>0.14.0</version>
       <optional>true</optional>
     </dependency>
     <dependency>
@@ -63,28 +46,28 @@
     <dependency>
       <groupId>org.jwat</groupId>
       <artifactId>jwat-common</artifactId>
-      <version>1.0.0</version>
+      <version>${jwat.version}</version>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.jwat</groupId>
       <artifactId>jwat-warc</artifactId>
-      <version>1.0.0</version>
+      <version>${jwat.version}</version>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.jwat</groupId>
       <artifactId>jwat-gzip</artifactId>
-      <version>1.0.0</version>
+      <version>${jwat.version}</version>
       <optional>true</optional>
     </dependency>
   </dependencies>
 
   <build>
-    <sourceDirectory>${basedir}/src</sourceDirectory>
+    <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
     <resources>
       <resource>
-        <directory>${basedir}/src</directory>
+        <directory>${basedir}/src/main/java</directory>
         <excludes>
           <exclude>**/*.java</exclude>
         </excludes>
@@ -132,6 +115,7 @@
           </execution>
         </executions>
       </plugin>
+<!--
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -141,7 +125,7 @@
           <target>${java.version}</target>
           <encoding>${project.build.sourceEncoding}</encoding>
         </configuration>
-      </plugin>
+      </plugin> -->
     </plugins>
   </build>
 </project>

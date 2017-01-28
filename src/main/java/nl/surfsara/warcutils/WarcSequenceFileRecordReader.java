@@ -15,10 +15,9 @@
  */
 package nl.surfsara.warcutils;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -29,8 +28,9 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.jwat.common.ByteCountingPushBackInputStream;
+import org.jwat.warc.WarcReader;
 import org.jwat.warc.WarcReaderFactory;
-import org.jwat.warc.WarcReaderUncompressed;
 import org.jwat.warc.WarcRecord;
 
 /**
@@ -40,6 +40,7 @@ import org.jwat.warc.WarcRecord;
  * Java Web Archive Toolkit. Used by the WarcSequenceFileInputFormat.
  * 
  * @author mathijs.kattenberg@surfsara.nl
+ * @author Jeroen Schot <jeroen.schot@surfsara.nl>
  */
 public class WarcSequenceFileRecordReader extends RecordReader<LongWritable, WarcRecord> {
 	private SequenceFile.Reader in;
@@ -49,6 +50,7 @@ public class WarcSequenceFileRecordReader extends RecordReader<LongWritable, War
 
 	private LongWritable key = null;
 	private Text value = null;
+	private WarcReader warcReader = null;
 	private WarcRecord derivedValue = null;
 
 	@Override
@@ -66,6 +68,16 @@ public class WarcSequenceFileRecordReader extends RecordReader<LongWritable, War
 		}
 		start = in.getPosition();
 		done = start >= end;
+
+		key = new LongWritable();
+		value = new Text();
+
+		warcReader = WarcReaderFactory.getReaderUncompressed();
+		warcReader.setUriProfile(WarcIOConstants.URIPROFILE);
+		warcReader.setBlockDigestEnabled(WarcIOConstants.BLOCKDIGESTENABLED);
+		warcReader.setPayloadDigestEnabled(WarcIOConstants.PAYLOADDIGESTENABLED);
+		warcReader.setRecordHeaderMaxSize(WarcIOConstants.HEADERMAXSIZE);
+		warcReader.setPayloadHeaderMaxSize(WarcIOConstants.PAYLOADHEADERMAXSIZE);
 	}
 
 	@Override
@@ -83,18 +95,10 @@ public class WarcSequenceFileRecordReader extends RecordReader<LongWritable, War
 		if (done) {
 			return false;
 		}
-		key = new LongWritable();
-		value = new Text();
 		boolean next = in.next(key, value);
 		if (next) {
-			InputStream in = new ByteArrayInputStream(value.getBytes());
-			WarcReaderUncompressed readerUncompressed = WarcReaderFactory.getReaderUncompressed(in);
-			readerUncompressed.setUriProfile(WarcIOConstants.URIPROFILE);
-			readerUncompressed.setBlockDigestEnabled(WarcIOConstants.BLOCKDIGESTENABLED);
-			readerUncompressed.setPayloadDigestEnabled(WarcIOConstants.PAYLOADDIGESTENABLED);
-			readerUncompressed.setRecordHeaderMaxSize(WarcIOConstants.HEADERMAXSIZE);
-			readerUncompressed.setPayloadHeaderMaxSize(WarcIOConstants.PAYLOADHEADERMAXSIZE);
-			derivedValue = readerUncompressed.getNextRecord();
+			ByteCountingPushBackInputStream in = new ByteCountingPushBackInputStream(IOUtils.toInputStream(value.toString()), 1024);
+			derivedValue = WarcRecord.parseRecord(in, warcReader);
 		}
 		return next;
 	}
